@@ -1,0 +1,12 @@
+stages:
+  - setup
+
+setup:
+  stage: setup
+  image: ubuntu:latest
+  before_script:
+    - apt-get update -y
+    - apt-get install -y ansible
+  script:
+    - echo "Repository checked out and Ansible installed."
+    - ls -la
