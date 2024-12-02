@@ -19,9 +19,22 @@ jobs:
           sudo apt update
           sudo apt install -y ansible
 
+      - name: List files
+        run: ls
+
+      - name: Setup Ansible
+        uses: cuchi/jinja2-action@v1.2.2
+        with:
+          template: hosts.ini.j2
+          output_file: hosts.ini
+          strict: true
+          variables: |
+            remote_addr= ${{ secrets.REMOTE_ADDRESS }}
+            ansible_user=${{ secrets.ANSIBLE_USER }}
+
       - name: Run Ansible Ping
         env:
           ANSIBLE_USER: "${{ secrets.ANSIBLE_USER }}"
           ANSIBLE_HOST_KEY_CHECKING: False
         run: |
-          ansible all -m ping -i ${{secrets.REMOTE_ADDRESS}}, --private-key private_key.pem -u ${{secrets.ANSIBLE_USER}}
+          ansible all -m ping -i hosts.ini
