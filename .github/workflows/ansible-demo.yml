@@ -21,7 +21,7 @@ jobs:
 
       - name: Run Ansible Ping
         env:
-          ANSIBLE_USER: ${{ secrets.ANSIBLE_USER }}
+          ANSIBLE_USER: "root"
           ANSIBLE_HOST_KEY_CHECKING: False
         run: |
-          ansible all -m ping -i ${{ secrets.REMOTE_ADDRESS }}, --private-key private_key.pem -u ${{ secrets.ANSIBLE_USER }}
+          ansible all -m ping -i 24.199.99.217, --private-key private_key.pem -u root
