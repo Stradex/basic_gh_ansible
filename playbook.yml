@@ -74,8 +74,8 @@
         chdir: "{{ app_dir }}"
 
     - name: Delete existing pm2 NextJS if running
-       command: "pm2 delete next-js"
-       ignore_errors: True
+      command: "pm2 delete next-js"
+      ignore_errors: True
       args:
         chdir: "{{ app_dir }}"
 
