@@ -1,0 +1,27 @@
+name: GitHub Actions Ansible DEMO
+run-name: ${{  github.actor }} is testing GH with Ansible.
+on: [push]
+jobs:
+  Test-GH-Ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          echo "${{ secrets.SSH_PRIVKEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Install Ansible
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Run Ansible Ping
+        env:
+          ANSIBLE_USER: ${{ secrets.ANSIBLE_USER }}
+          ANSIBLE_HOST_KEY_CHECKING: False
+        run: |
+          ansible all -m ping -i ${{ REMOTE_ADDRESS }}, --private-key private_key.pem -u ${{ secrets.ANSIBLE_USER }}
