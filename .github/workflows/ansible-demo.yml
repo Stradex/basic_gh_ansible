@@ -24,4 +24,4 @@ jobs:
           ANSIBLE_USER: ${{ secrets.ANSIBLE_USER }}
           ANSIBLE_HOST_KEY_CHECKING: False
         run: |
-          ansible all -m ping -i ${{ REMOTE_ADDRESS }}, --private-key private_key.pem -u ${{ secrets.ANSIBLE_USER }}
+          ansible all -m ping -i ${{ secrets.REMOTE_ADDRESS }}, --private-key private_key.pem -u ${{ secrets.ANSIBLE_USER }}
