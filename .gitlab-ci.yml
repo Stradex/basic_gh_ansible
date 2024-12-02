@@ -17,3 +17,10 @@ setup:
     - pip3 --version
     - ansible --version
     - pip list
+    - export remote_addr="$REMOTE_ADDRESS" 
+    - export ansible_user="root" 
+    - export ANSIBLE_HOST_KEY_CHECKING=False
+    - echo "$SSH_PRIVKEY" > private_key.pem
+    - chmod 600 private_key.pem
+    - jinjanate hosts.ini.j2 > hosts.ini
+    - ansible-playbook -i hosts.ini playbook.yml
