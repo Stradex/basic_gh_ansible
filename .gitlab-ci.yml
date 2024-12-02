@@ -17,10 +17,19 @@ setup:
     - pip3 --version
     - ansible --version
     - pip list
-    - export remote_addr="$REMOTE_ADDRESS" 
-    - export ansible_user="root" 
     - export ANSIBLE_HOST_KEY_CHECKING=False
-    - echo "$SSH_PRIVKEY" > private_key.pem
+    - |
+      if [ "$CI_COMMIT_REF_NAME" == "main" ]; then
+        echo "Main branch..."
+        export remote_addr="$REMOTE_ADDRESS" 
+        export ansible_user="root" 
+        echo "$SSH_PRIVKEY" > private_key.pem
+      else
+        echo "Development branch..."
+        export remote_addr="$REMOTE_DEV_ADDRESS" 
+        export ansible_user="root" 
+        echo "$SSH_DEV_PRIVKEY" > private_key.pem
+      fi
     - chmod 600 private_key.pem
     - jinjanate hosts.ini.j2 > hosts.ini
     - ansible-playbook -i hosts.ini playbook.yml
