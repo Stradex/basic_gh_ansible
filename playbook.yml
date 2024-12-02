@@ -1,0 +1,87 @@
+---
+- hosts: all
+  become: yes
+
+  vars_files:
+    - vars.yml  
+
+  pre_tasks:
+    - name: Update apt cache if needed.
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+  tasks:
+    - name: Install UFW
+      apt:
+        name: ufw
+        state: latest
+        update_cache: yes
+
+    - name: Allow SSH
+      ufw:
+        rule: allow
+        name: 'SSH'
+
+    - name: Allow NodeJS
+      ufw:
+        rule: allow
+        port: 3000
+        proto: tcp
+
+    - name: Enable UFW 
+      ufw:
+        state: enabled
+
+    - name: Install PM2
+      npm:
+        name: "{{ item }}"
+        global: yes
+        state: present
+      with_items:
+        - pm2
+        - pmx
+
+    - name: Remove old artifacts from the ansible user's .pm2 directory
+      file:
+        path: /home/{{ ansible_user }}/.pm2/{{ item }}
+        state: absent
+      become: false
+      with_items:
+        - dump.pm2
+        - dump.pm2.bak
+        - pm2.log
+        - pm2.pid
+        - touch
+
+    - name: Install pm2-logrotate using PM2
+      command: pm2 install pm2-logrotate
+
+    - name: Copy app files
+      copy:
+        src: app/ 
+        dest: "{{ app_dir }}"
+
+    - name: Install app dependencies defined in package.json
+      npm:
+        path: "{{ app_dir }}"
+
+    - name: Build NextJS app
+      command: >
+        npm run build
+      become: yes
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Delete existing pm2 NextJS if running
+       command: "pm2 delete next-js"
+       ignore_errors: True
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Run NextJS app with PM2
+      command: >
+        pm2 start npm --name "next-js" -- start
+      become: yes
+      args:
+        chdir: "{{ app_dir }}"
