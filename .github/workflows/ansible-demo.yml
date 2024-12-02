@@ -1,17 +1,12 @@
-name: GitHub Actions Ansible DEMO
+name: GitHub Actions Ansible toggle features test.
 run-name: ${{  github.actor }} is testing GH with Ansible.
 on: [push]
 jobs:
-  Test-GH-Ansible:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up SSH
-        run: |
-          echo "${{ secrets.SSH_PRIVKEY }}" > private_key.pem
-          chmod 600 private_key.pem
 
       - name: Install Ansible
         shell: bash
@@ -19,10 +14,8 @@ jobs:
           sudo apt update
           sudo apt install -y ansible
 
-      - name: List files
-        run: ls
-
-      - name: Setup Ansible
+      - name: Setup Ansible (Production)
+        if: github.ref == 'refs/heads/main'
         uses: cuchi/jinja2-action@v1.2.2
         with:
           template: hosts.ini.j2
@@ -32,9 +25,43 @@ jobs:
             remote_addr= ${{ secrets.REMOTE_ADDRESS }}
             ansible_user=${{ secrets.ANSIBLE_USER }}
 
-      - name: Run Ansible Ping
+      - name: Setup Ansible (Dev)
+        if: github.ref == 'refs/heads/dev'
+        uses: cuchi/jinja2-action@v1.2.2
+        with:
+          template: hosts.ini.j2
+          output_file: hosts.ini
+          strict: true
+          variables: |
+            remote_addr= ${{ secrets.REMOTE_DEV_ADDRESS }}
+            ansible_user=${{ secrets.ANSIBLE_DEV_USER }}
+
+
+      - name: Set up SSH (Production)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.SSH_PRIVKEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Set up SSH (Development)
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          echo "${{ secrets.SSH_DEV_PRIVKEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Run ansible playbook (Production)
+        if: github.ref == 'refs/heads/main'
         env:
           ANSIBLE_USER: "${{ secrets.ANSIBLE_USER }}"
           ANSIBLE_HOST_KEY_CHECKING: False
         run: |
           ansible-playbook -i hosts.ini playbook.yml
+
+      - name: Run ansible playbook (Development)
+        if: github.ref == 'refs/heads/dev'
+        env:
+          ANSIBLE_USER: "${{ secrets.ANSIBLE_DEV_USER }}"
+          ANSIBLE_HOST_KEY_CHECKING: False
+        run: |
+          ansible-playbook -i hosts.ini playbook.yml
+
