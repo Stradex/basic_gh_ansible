@@ -33,6 +33,13 @@
       ufw:
         state: enabled
 
+    - name: Install Node.js and npm.
+      apt:
+        name:
+          - nodejs
+          - npm
+        state: present
+
     - name: Install PM2
       npm:
         name: "{{ item }}"
